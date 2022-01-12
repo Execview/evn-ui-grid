@@ -1,39 +1,37 @@
 {
 	"name": "@execview/grid",
-	"version": "0.1.42",
+	"version": "0.1.43",
 	"main": "./transpiled/exports.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Execview/evn-ui-grid.git"
 	},
 	"dependencies": {
-		"@execview/reusable": "0.1.99",
-		"@execview/themedesigner": "0.1.15",
-		"@fortawesome/fontawesome-svg-core": "^1.2.25",
-		"@fortawesome/free-solid-svg-icons": "^5.11.2",
-		"@fortawesome/react-fontawesome": "^0.1.7",
-		"react": "16.11.0",
-		"react-dom": "16.11.0",
-		"react-grid-layout": "^0.17.1",
-		"react-resize-detector": "^4.2.1",
-		"react-scripts": "3.2.0"
+		"@execview/reusable": "0.1.108",
+		"@execview/themedesigner": "0.1.18",
+		"@fortawesome/fontawesome-svg-core": "^1.2.36",
+		"@fortawesome/free-solid-svg-icons": "^5.15.4",
+		"@fortawesome/react-fontawesome": "^0.1.16",
+		"react": "17.0.2",
+		"react-dom": "17.0.2",
+		"react-grid-layout": "^1.3.1",
+		"react-resize-detector": "^7.0.0",
+		"react-scripts": "5.0.0"
 	},
 	"scripts": {
 		"start": "react-scripts start",
 		"build": "react-scripts build",
 		"test": "react-scripts test",
-		"eject": "react-scripts eject",
-		"prepublishOnly": "npm --no-git-tag-version version patch && npm install --no-save @babel/cli @babel/core @babel/plugin-proposal-class-properties @babel/preset-env @babel/preset-react && babel src -d transpiled --copy-files --plugins=@babel/plugin-proposal-class-properties --presets=@babel/preset-env,@babel/preset-react",
-		"postpublish": "rmdir /S /Q transpiled",
-		"clean": "wsl rm -rfd ./node_modules && wsl rm -rfd ./transpiled && wsl rm ./package-lock.json"
+		"prepublishOnly": "npm --no-git-tag-version version patch && npm run installTranspiler && npm run transpile",
+		"postpublish": "npx --yes rimraf transpiled",
+		"installTranspiler": "npm install --no-save @babel/cli @babel/preset-react",
+		"transpile": "npx babel src -d transpiled --copy-files --presets=@babel/preset-react",
+		"clean": "npx --yes rimraf node_modules transpiled package-lock.json"
 	},
 	"files": [
 		"/public",
 		"/transpiled"
 	],
-	"eslintConfig": {
-		"extends": "react-app"
-	},
 	"browserslist": {
 		"production": [
 			">0.2%",

@@ -5,7 +5,7 @@ import Draggable from './HandlerTools/Draggable'
 import withGridItemClassName from './HandlerTools/withGridItemClassName'
 import CogBar from './HandlerTools/CogBar'
 
-module.exports = {
+export {
 	Grid,
 	EmptyHandler,
 	Handler,
@@ -13,3 +13,5 @@ module.exports = {
 	withGridItemClassName,
 	CogBar
 }
+
+export default Grid
