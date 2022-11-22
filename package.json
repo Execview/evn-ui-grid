@@ -1,16 +1,16 @@
 {
 	"name": "@execview/grid",
-	"version": "0.1.52",
+	"version": "0.1.57",
 	"main": "./transpiled/exports.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Execview/evn-ui-grid.git"
 	},
 	"dependencies": {
-		"@execview/reusable": "0.1.119",
-		"@execview/themedesigner": "0.1.28",
-		"@fortawesome/fontawesome-svg-core": "^6.1.2",
-		"@fortawesome/free-solid-svg-icons": "^6.1.2",
+		"@execview/reusable": "0.1.123",
+		"@execview/themedesigner": "0.1.30",
+		"@fortawesome/fontawesome-svg-core": "^6.2.1",
+		"@fortawesome/free-solid-svg-icons": "^6.2.1",
 		"@fortawesome/react-fontawesome": "^0.2.0",
 		"react": "18.2.0",
 		"react-dom": "18.2.0",

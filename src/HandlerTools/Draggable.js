@@ -1,5 +1,5 @@
 import React, { useContext } from 'react'
-import DraggableContext from './DraggableContext'
+import DraggableContext from './DraggableContext.js'
 
 const Draggable = (props) => {
 	const draggableClass = useContext(DraggableContext)

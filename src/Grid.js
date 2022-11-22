@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react'
 import ReactGridLayout, { WidthProvider } from 'react-grid-layout'
-import GridItem from './GridItem'
+import GridItem from './GridItem.js'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
 import './Grid.css'
 import { withResizeDetector } from 'react-resize-detector';
-import DraggableContext from './HandlerTools/DraggableContext'
+import DraggableContext from './HandlerTools/DraggableContext.js'
 import classes from './Grid.module.css'
 
 const RGL = withResizeDetector(ReactGridLayout)

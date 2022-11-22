@@ -1,5 +1,5 @@
 import React from 'react'
-import Draggable from '../HandlerTools/Draggable'
+import Draggable from '../HandlerTools/Draggable.js'
 
 const EmptyHandler = (props) => {
 	return (

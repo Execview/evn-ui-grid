@@ -3,8 +3,8 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faGripLines } from '@fortawesome/free-solid-svg-icons';
 import classes from './Handler.module.css';
 
-import Draggable from '../HandlerTools/Draggable'
-import withGridItemClassName from '../HandlerTools/withGridItemClassName'
+import Draggable from '../HandlerTools/Draggable.js'
+import withGridItemClassName from '../HandlerTools/withGridItemClassName.js'
 
 const GridItemClassName = classes['grid-item']
 const GridItemChildClassName = classes['child-item']

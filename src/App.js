@@ -1,10 +1,10 @@
 import React from 'react';
-import BadComponent from './BadComponent'
-import Grid from './Grid';
+import BadComponent from './BadComponent.js'
+import Grid from './Grid.js';
 import classes from './App.module.css';
-import Handler from './Handlers/Handler';
-import EmptyHandler from './Handlers/EmptyHandler'
-import CogBar from './HandlerTools/CogBar'
+import Handler from './Handlers/Handler.js';
+import EmptyHandler from './Handlers/EmptyHandler.js'
+import CogBar from './HandlerTools/CogBar.js'
 
 import { useThemeApplier, defaultTheme } from '@execview/themedesigner'
 
