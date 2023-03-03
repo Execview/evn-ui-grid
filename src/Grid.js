@@ -1,121 +1,127 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import ReactGridLayout, { WidthProvider } from 'react-grid-layout'
-import GridItem from './GridItem.js'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import './Grid.css'
-import { withResizeDetector } from 'react-resize-detector';
+import React, { useState, useEffect, useMemo } from 'react'
+import ReactGridLayout from 'react-grid-layout'
+import {recursiveDeepDiffs} from '@execview/reusable'
+import GridItem from './GridItem.js'
+import { useResizeDetector } from 'react-resize-detector';
 import DraggableContext from './HandlerTools/DraggableContext.js'
 import classes from './Grid.module.css'
+import './Grid.css'
 
-const RGL = withResizeDetector(ReactGridLayout)
+const Grid = ({
+	draggableClassName=classes['draggable-handle'],
+	nonDraggableClassName=classes['non-draggable-handle'],
+	cols,
+	defaultHeight=200,
+	defaultWidth=1,
+	margin=[0,0],
+	...props
+}) => {
 
-const Grid = (props) => {
-	const draggableHandle = props.draggableClassName || classes['draggable-handle']
+	const {width, height, ref} = useResizeDetector()
+
 
 	const makeKey = (i) => i.toString()
-	const ourPropertyKeys = ['className','draggable','id']
-	const filterProperties = ["i","minW","maxW","minH","maxH","moved","static","isDraggable","isResizable"]
+	const filterProperties = ["externalHeight","minW","maxW","minH","maxH","moved","static","isDraggable","isResizable"]
 
-	const cols = props.cols
-	const defaultHeight = props.defaultHeight || 200
-	const defaultWidth = props.defaultWidth || 1
-	const margin = props.margin || [0,0]
+	const [heights, setHeights] = useState({}) // stored heights for each item. items can change their own heights, but this is overriden by external grid setting.
 
-	const getLayoutAndOurProperties = (layout=[], ourProperties={}) => {
-		let newLayout = layout
-		let newOurProperties = ourProperties
+	const getLayout = () => {
+		let newLayout = []
 		const maxYSoFar = Math.max(...props.children.map(child=>((child && child.props && child.props.grid && child.props.grid.y) || 0)))
 		props.children.forEach((child,i)=>{
 			if(!child){return}
-			const childProps = child.props || {}
-			const childGridProps = childProps.grid || {}
-			const RGLParentClassName = childProps.RGLParentClassName
-			const RGLChildClassName = childProps.RGLChildClassName
-			const childGrid = Object.fromEntries(Object.entries(childGridProps).filter(([k,v])=>!ourPropertyKeys.includes(k)))
-			const ourValues = Object.fromEntries(Object.entries(childGridProps).filter(([k,v])=>ourPropertyKeys.includes(k)))
-			const dataGrid = {i: makeKey(i), x: 0, y:maxYSoFar+i, w:defaultWidth, h:defaultHeight, ...childGrid };
-			newLayout.push(dataGrid)
-			newOurProperties[dataGrid.i] = {className: RGLParentClassName, childClassName: RGLChildClassName,...ourValues}
+			const childGridProps = child?.props?.grid || {}
+			let layoutItem = {
+				i: makeKey(i),
+				x: 0,
+				y:maxYSoFar+i, 
+				w:defaultWidth,
+				h: heights[makeKey(i)] || defaultHeight,
+				...childGridProps
+			};
+			if(childGridProps.h){layoutItem.externalHeight = childGridProps.h}
+			newLayout.push(layoutItem)
 		})
-		return [newLayout, newOurProperties]
-	}
-
-	const isInternalLayout = !props.setLayout
-	const [internalLayout, setInternalLayout] = useState([])
-	const [internalOurProperties, setInternalOurProperties] = useState({})
-	
-	const [layoutFromChildren, ourPropertiesFromChildren] = isInternalLayout ? [null,null] : getLayoutAndOurProperties()
-
-	const removeTheirProperties = (blockLayout,exceptions=[]) => {
-			const propertiesToFilter = filterProperties.filter(p=>!exceptions.includes(p))
-			let newBlockLayout = blockLayout || {}
-			propertiesToFilter.forEach(p=>{
-				const {[p]:_, ...rest} = newBlockLayout
-				newBlockLayout = rest
-		})
-		return newBlockLayout
+		return newLayout
 	}
 
 	const externalSetLayout = (newLayout) => {
-		newLayout.sort((a,b)=>{
-			return a.i-b.i
-		})
-		const filteredNewLayout = newLayout.map(blockLayout=>{
-			return {...removeTheirProperties(blockLayout),...ourProperties[blockLayout.i]} //add ourProperties back in
-		})
-		props.setLayout && props.setLayout(filteredNewLayout)
-	}
-	const [layout, setLayout] = isInternalLayout ? [internalLayout, setInternalLayout] : [layoutFromChildren, externalSetLayout]
+		const filteredOldLayout = layout.map(l=>removeTheirProperties(l))
+		const filteredNewLayout = newLayout.map(layoutItem=>removeTheirProperties(layoutItem))
+		filteredNewLayout.sort((a,b)=>a.i-b.i)
 
-	const [ourProperties, setOurProperties] = isInternalLayout ? [internalOurProperties, setInternalOurProperties] : [ourPropertiesFromChildren, (()=>console.log('you shouldnt see this'))]
-
-	useEffect(()=>{
-		if(isInternalLayout){
-			const [newLayout, newOurProperties] = getLayoutAndOurProperties(layout, ourProperties)
-			setLayout(newLayout)
-			setOurProperties(newOurProperties)
+		const differences = recursiveDeepDiffs(filteredOldLayout,filteredNewLayout)
+		if((differences||[]).some(d=>d && Object.keys(d).length)){
+			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
+			props.setLayout && props.setLayout(filteredNewLayout)
 		}
-	},[])
+	}
+
+	const [layout, setLayout] = [getLayout(), externalSetLayout]
+
+	const removeTheirProperties = (layoutItem,exceptions=[]) => {
+			const propertiesToFilter = filterProperties.filter(p=>!exceptions.includes(p))
+			let newLayoutItem = layoutItem || {}
+			propertiesToFilter.forEach(p=>{
+				const {[p]:_, ...rest} = newLayoutItem
+				newLayoutItem = rest
+		})
+		return newLayoutItem
+	}
 
 	const changeHeight = (key,height) => {
-		const currentDataGrid = layout.find(el=>el.i===key)
-		const filteredLayout = layout.filter(el=>el.i!==key)
-		setLayout([...filteredLayout,{...currentDataGrid, h: height+margin[1]}])
+		const layoutItem = layout.find(l=>l.i===key)
+		if(!layoutItem?.externalHeight){
+			setHeights({...heights, [key]: height})
+		}
+		setLayout(layout.map(el=>el.i!==key ? el : {...el, h: height}))
 	}
 
 	const onDrop = (l,o,n) => {
-		const n_i = n.i
-		const o_i = o.i
-		const n_id = ourProperties[n_i] && ourProperties[n_i].id
-		const o_id = ourProperties[o_i] && ourProperties[o_i].id
-
 		const newPos = removeTheirProperties(n)
-		if(n_id) {newPos.id = n_id}
 		const oldPos = removeTheirProperties(o)
-		if(o_id) {oldPos.id = o_id}
-
 		props.onDrop && props.onDrop(newPos, oldPos)
 	}
 
 	return (
-		<DraggableContext.Provider value={draggableHandle}>
-		<RGL onDragStop={onDrop} layout={layout} cols={cols} rowHeight={1} margin={[0,0]} onLayoutChange={(newLayout) => setLayout(newLayout)} draggableHandle={`.${draggableHandle}`}>
-			{props.children.map((child,i)=>{
-				const key = makeKey(i)
-				const parentClassName = (ourProperties[key] && ourProperties[key].className) || ''
-				const childClassName = (ourProperties[key] && ourProperties[key].childClassName) || ''
-				return (
-					<div key={key} className={parentClassName}>
-						<div style={{height:'100%'}} className={childClassName} style={{marginTop: margin[1], marginLeft: margin[0]}}>
-							<GridItem onResize={(h)=>changeHeight(key,h)}>
+		<DraggableContext.Provider value={{
+			draggableClassName: draggableClassName,
+			nonDraggableClassName: nonDraggableClassName
+		}}>
+		<div ref={ref} className={classes['grid-container']}>
+			<ReactGridLayout
+				draggableHandle={`.${draggableClassName}`}
+				draggableCancel={`.${nonDraggableClassName}`}
+				cols={cols}
+				rowHeight={1}
+				layout={layout}
+				onLayoutChange={(newLayout) => setLayout(newLayout)}
+				onDragStop={onDrop}
+				resizeHandles={['e']}
+				width={width}
+				height={height}
+				margin={margin}
+			>
+				{props.children.map((child,i)=>{
+					const key = makeKey(i)
+					return (
+						<div key={key} className={classes['grid-item-container']}>
+							<GridItem
+								k={key}
+								height={layout.find(l=>l.i===key)?.h}
+								setHeight={(h)=>changeHeight(key,h)}
+								className={classes['grid-item-componnent']}
+							>
 								{child}
 							</GridItem>
-						</div>
-					</div>
-				)
-			})}
-		</RGL>
+						</div>	
+						
+					)
+				})}
+			</ReactGridLayout>
+		</div>
 		</DraggableContext.Provider>
 	)
 }

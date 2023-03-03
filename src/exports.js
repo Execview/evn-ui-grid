@@ -2,7 +2,7 @@ import Grid from './Grid.js'
 import EmptyHandler from './Handlers/EmptyHandler.js'
 import Handler from './Handlers/Handler.js'
 import Draggable from './HandlerTools/Draggable.js'
-import withGridItemClassName from './HandlerTools/withGridItemClassName.js'
+import NonDraggable from './HandlerTools/NonDraggable.js'
 import CogBar from './HandlerTools/CogBar.js'
 
 export {
@@ -10,7 +10,7 @@ export {
 	EmptyHandler,
 	Handler,
 	Draggable,
-	withGridItemClassName,
+	NonDraggable,
 	CogBar
 }
 

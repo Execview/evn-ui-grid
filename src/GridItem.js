@@ -1,14 +1,18 @@
-import React from 'react'
-import ReactResizeDetector from 'react-resize-detector';
+import React, { useLayoutEffect } from 'react'
+import { useResizeDetector } from 'react-resize-detector';
 
-const GridItem = (props) => {
+const GridItem = ({height, setHeight, className, children}) => {
+	const {height: measuredHeight, ref} = useResizeDetector()
+
+	useLayoutEffect(()=>{
+		if(measuredHeight && height && (measuredHeight !== height)) {
+			setHeight(measuredHeight)
+		}
+	})
+
 	return (
-		<div className={props.className}>
-			<ReactResizeDetector handleWidth handleHeight onResize={(w,h)=>props.onResize && props.onResize(h)}>
-				<div>
-					{props.children}
-				</div>	
-			</ReactResizeDetector>
+		<div ref={ref} className={className}>
+			{children}
 		</div>
 	)
 }

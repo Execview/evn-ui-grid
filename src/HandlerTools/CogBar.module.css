@@ -1,13 +1,14 @@
-.bar-content{
+.container{
 	flex:1;
 	display: flex;
 	justify-content: flex-end;
 }
 
-.cog{
+.cog-icon{
+	padding: 5px;
 	transition: transform 0.5s ease;
 }
 
-.cog:hover{
+.cog-icon:hover{
 	transform:rotate(360deg);
 }

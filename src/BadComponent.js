@@ -1,3 +1,4 @@
+import { Button } from '@execview/reusable'
 import React, { useState, useEffect, useMemo } from 'react'
 
 const getRandom = (n) => parseInt(n*Math.random())
@@ -15,6 +16,7 @@ const BadComponent = (props) => {
 
 	const badComponentStyle = {
 		backgroundColor: randomColour,
+		width: '100%',
 		height: forcedHeight,
 		display: 'flex',
 		flexDirection: 'column',
@@ -26,7 +28,7 @@ const BadComponent = (props) => {
 	return (
 		<div style={badComponentStyle}>
 			<div>{`${props.i}`}</div>
-			<button onClick={()=>setForcedHeight(forcedHeight===small?large:small)}>change height</button>
+			<Button onClick={()=>setForcedHeight(forcedHeight===small?large:small)}>Change height</Button>
 		</div>
 	)
 }

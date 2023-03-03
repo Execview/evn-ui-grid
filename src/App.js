@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import BadComponent from './BadComponent.js'
 import Grid from './Grid.js';
 import classes from './App.module.css';
@@ -11,19 +11,38 @@ import { useThemeApplier, defaultTheme } from '@execview/themedesigner'
 const App = (props) => {
 	useThemeApplier(defaultTheme)
 
+	const [grids, setGrids] = useState({})
+
+	const numberOfItems = 2
+
 	let childItems = []
-	for(let i=0; i<20; i++){
+	for(let i=0; i<numberOfItems; i++){
 		const bar = <CogBar><div>Test</div></CogBar>
-		const handler = i % 2 === 0 ? <Handler bar={bar}/> : <EmptyHandler className={classes['empty-handler']} />
+		const grid = grids[i.toString()]
+		// const grid = {h: 50} // set this to override internally stored heights
+		const handler = i % 2 !== 0 ? <Handler bar={bar} grid={grid}/> : <EmptyHandler className={classes['empty-handler']} grid={grid}/>
 		const content = <BadComponent i={i}/>
-		const item = React.createElement(handler.type,{key: i,...handler.props},content)
+		const item = React.createElement(handler.type,{...handler.props},content)
 		childItems.push(item)
+	}
+
+	const setLayout = (layout) => {
+		console.log(layout)
+		setGrids(Object.fromEntries(layout.map(l=>[l.i,l])))
+	}
+
+	const onDrop = (n,o) => {
+		console.log(n,o)
 	}
 
 	return (
 		<div className={classes["main"]}>
-			<div className={classes["grid"]}>
-				<Grid cols={2} margin={[0,40]}>
+			<div className={classes["grid-container"]}>
+				<Grid
+					cols={2}
+					setLayout={setLayout}
+					onDrop={onDrop}
+				>
 					{childItems}
 				</Grid>
 			</div>
