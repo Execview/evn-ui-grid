@@ -42,7 +42,6 @@ const Grid = ({
 				h: heights[id] || defaultHeight,
 				...childGridProps
 			};
-			console.log(childGridProps)
 			if(childGridProps.h){layoutItem.externalHeight = childGridProps.h}
 			newLayout.push(layoutItem)
 		})
@@ -86,6 +85,7 @@ const Grid = ({
 		const oldPos = removeTheirProperties(o)
 		const differences = recursiveDeepDiffs(o,n)
 		if(differences){
+			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
 			props.onDrop && props.onDrop(newPos, oldPos)
 		}
 	}
