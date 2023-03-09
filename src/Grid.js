@@ -33,14 +33,16 @@ const Grid = ({
 		props.children.forEach((child,i)=>{
 			if(!child){return}
 			const childGridProps = child?.props?.grid || {}
+			const id = childGridProps.i || makeKey(i)
 			let layoutItem = {
-				i: makeKey(i),
+				i: id,
 				x: 0,
 				y:maxYSoFar+i, 
 				w:defaultWidth,
-				h: heights[makeKey(i)] || defaultHeight,
+				h: heights[id] || defaultHeight,
 				...childGridProps
 			};
+			console.log(childGridProps)
 			if(childGridProps.h){layoutItem.externalHeight = childGridProps.h}
 			newLayout.push(layoutItem)
 		})
@@ -82,7 +84,10 @@ const Grid = ({
 	const onDrop = (l,o,n) => {
 		const newPos = removeTheirProperties(n)
 		const oldPos = removeTheirProperties(o)
-		props.onDrop && props.onDrop(newPos, oldPos)
+		const differences = recursiveDeepDiffs(o,n)
+		if(differences){
+			props.onDrop && props.onDrop(newPos, oldPos)
+		}
 	}
 
 	return (
@@ -105,13 +110,13 @@ const Grid = ({
 				margin={margin}
 			>
 				{props.children.map((child,i)=>{
-					const key = makeKey(i)
+					const childGridProps = child?.props?.grid || {}
+					const id = childGridProps.i || makeKey(i)
 					return (
-						<div key={key} className={classes['grid-item-container']}>
+						<div key={id} className={classes['grid-item-container']}>
 							<GridItem
-								k={key}
-								height={layout.find(l=>l.i===key)?.h}
-								setHeight={(h)=>changeHeight(key,h)}
+								height={layout.find(l=>l.i===id)?.h}
+								setHeight={(h)=>changeHeight(id,h)}
 								className={classes['grid-item-componnent']}
 							>
 								{child}
