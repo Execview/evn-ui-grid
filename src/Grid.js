@@ -16,30 +16,39 @@ const Grid = ({
 	defaultHeight=200,
 	defaultWidth=1,
 	margin=[0,0],
+	test,
 	...props
 }) => {
 
 	const {width, height, ref} = useResizeDetector()
 
 
-	const makeKey = (i) => i.toString()
-	const filterProperties = ["externalHeight","minW","maxW","minH","maxH","moved","static","isDraggable","isResizable"]
+	const makeKey = (i) => `gridId${i.toString()}`
 
-	const [heights, setHeights] = useState({}) // stored heights for each item. items can change their own heights, but this is overriden by external grid setting.
+	// const externalProperties = ["i","x","w"]
+	const pointlessProperties = ["isBounded","isDraggable","isResizable","minW","maxW","minH","maxH","resizeHandles"]
+	const internalProperties = ["externalHeight","h","y","moved","static",...pointlessProperties]
+
+	const removeProperties = (layoutItem,properties=internalProperties) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>!properties.includes(k)))
+
+	const [internalLayout, setInternalLayout] = useState({}) // stored heights for each item. items can change their own heights, but this is overriden by external grid setting.
 
 	const getLayout = () => {
 		let newLayout = []
-		const maxYSoFar = Math.max(...props.children.map(child=>((child && child.props && child.props.grid && child.props.grid.y) || 0)))
 		props.children.forEach((child,i)=>{
 			if(!child){return}
-			const childGridProps = child?.props?.grid || {}
+			const {y,...childGridProps} = child?.props?.grid || {}
 			const id = childGridProps.i || makeKey(i)
-			let layoutItem = {
-				i: id,
+			const defaultLayout = {
+				i: makeKey(i),
 				x: 0,
-				y:maxYSoFar+i, 
+				y: i, 
 				w:defaultWidth,
-				h: heights[id] || defaultHeight,
+				h: defaultHeight
+			}
+			let layoutItem = {
+				...defaultLayout,
+				...internalLayout[id],
 				...childGridProps
 			};
 			if(childGridProps.h){layoutItem.externalHeight = childGridProps.h}
@@ -48,47 +57,64 @@ const Grid = ({
 		return newLayout
 	}
 
-	const externalSetLayout = (newLayout) => {
-		const filteredOldLayout = layout.map(l=>removeTheirProperties(l))
-		const filteredNewLayout = newLayout.map(layoutItem=>removeTheirProperties(layoutItem))
-		filteredNewLayout.sort((a,b)=>a.i-b.i)
+	const layout = JSON.parse(JSON.stringify(getLayout()))
 
-		const differences = recursiveDeepDiffs(filteredOldLayout,filteredNewLayout)
-		if((differences||[]).some(d=>d && Object.keys(d).length)){
-			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
+	const onLayoutChange = (nl) => {
+		const newLayout = nl.map(l=>removeProperties(l,pointlessProperties))
+		const filteredOldLayout = layout.map(l=>removeProperties(l))
+		const filteredNewLayout = newLayout.map(l=>removeProperties(l))
+		filteredNewLayout.sort((a,b)=>a.y-b.y)
+
+		const filteredDiffs = recursiveDeepDiffs(filteredOldLayout,filteredNewLayout)
+		const normalDiffs = recursiveDeepDiffs(layout,newLayout)
+		if((filteredDiffs||[]).some(d=>d && Object.keys(d).length)){
+			// console.log(`Changes: ${JSON.stringify(filteredDiffs,null,4)}`)
 			props.setLayout && props.setLayout(filteredNewLayout)
+		}
+		if((normalDiffs||[]).some(d=>d && Object.keys(d).length)){
+			// console.log(layout, newLayout, internalLayout)
+			// console.log(`Changes: ${JSON.stringify(normalDiffs,null,4)}`)
+			setInternalLayout(Object.fromEntries(newLayout.map(l=>[l.i,l])))
 		}
 	}
 
-	const [layout, setLayout] = [getLayout(), externalSetLayout]
-
-	const removeTheirProperties = (layoutItem,exceptions=[]) => {
-			const propertiesToFilter = filterProperties.filter(p=>!exceptions.includes(p))
-			let newLayoutItem = layoutItem || {}
-			propertiesToFilter.forEach(p=>{
-				const {[p]:_, ...rest} = newLayoutItem
-				newLayoutItem = rest
-		})
-		return newLayoutItem
-	}
 
 	const changeHeight = (key,height) => {
 		const layoutItem = layout.find(l=>l.i===key)
 		if(!layoutItem?.externalHeight){
-			setHeights({...heights, [key]: height})
+			setInternalLayout({...internalLayout, [key]: {...internalLayout[key], h: height}})
 		}
-		setLayout(layout.map(el=>el.i!==key ? el : {...el, h: height}))
 	}
 
 	const onDrop = (l,o,n) => {
-		const newPos = removeTheirProperties(n)
-		const oldPos = removeTheirProperties(o)
+		const newPos = removeProperties(n)
+		const oldPos = removeProperties(o)
 		const differences = recursiveDeepDiffs(o,n)
 		if(differences){
 			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
 			props.onDrop && props.onDrop(newPos, oldPos)
 		}
 	}
+	// console.log(layout)
+
+
+	const gridItems = props.children.map((child,i)=>{
+		const childGridProps = child?.props?.grid || {}
+		const id = childGridProps.i || makeKey(i)
+		return (
+			<div key={id} className={classes['grid-item-container']} data-grid={layout.find(l=>l.i===id)}>
+				<GridItem
+					height={layout.find(l=>l.i===id)?.h}
+					setHeight={(h)=>changeHeight(id,h)}
+					className={classes['grid-item-componnent']}
+					data-grid={layout.find(l=>l.i===id)}
+				>
+					{child}
+				</GridItem>
+			</div>	
+			
+		)
+	})
 
 	return (
 		<DraggableContext.Provider value={{
@@ -102,29 +128,14 @@ const Grid = ({
 				cols={cols}
 				rowHeight={1}
 				layout={layout}
-				onLayoutChange={(newLayout) => setLayout(newLayout)}
+				onLayoutChange={onLayoutChange}
 				onDragStop={onDrop}
 				resizeHandles={['e']}
 				width={width}
 				height={height}
 				margin={margin}
 			>
-				{props.children.map((child,i)=>{
-					const childGridProps = child?.props?.grid || {}
-					const id = childGridProps.i || makeKey(i)
-					return (
-						<div key={id} className={classes['grid-item-container']}>
-							<GridItem
-								height={layout.find(l=>l.i===id)?.h}
-								setHeight={(h)=>changeHeight(id,h)}
-								className={classes['grid-item-componnent']}
-							>
-								{child}
-							</GridItem>
-						</div>	
-						
-					)
-				})}
+				{gridItems}
 			</ReactGridLayout>
 		</div>
 		</DraggableContext.Provider>
