@@ -22,7 +22,8 @@ const Grid = ({
 	...props
 }) => {
 
-	const makeKey = (i) => `gridId${i.toString()}`
+	const makeKey = i => `gridId${i.toString()}`
+	const unmakeKey = key => parseInt(key.replace("gridId",""))
 
 	const externalProperties = ["x","w","y"]
 	const pointlessProperties = ["isBounded","isDraggable","isResizable","minW","maxW","minH","maxH","resizeHandles"]
@@ -35,7 +36,7 @@ const Grid = ({
 	const getLayout = () => {
 		let newLayout = internalLayout || []
 		externalLayout.forEach((externalItem,i)=>{
-			const id = externalItem.i || makeKey(i)
+			const id = makeKey(i)
 			const existingItem = newLayout.find(l=>l.i===id)
 			const newItem = {...existingItem,...externalItem}
 			if(existingItem){
@@ -58,7 +59,7 @@ const Grid = ({
 	}
 
 	const layout = JSON.parse(JSON.stringify(getLayout()))
-	console.log(externalLayout,internalLayout,layout)
+	// console.log(externalLayout,internalLayout,layout)
 
 	const onLayoutChange = (newLayout) => {
 
@@ -67,14 +68,17 @@ const Grid = ({
 		const filteredDiffs = recursiveDeepDiffs(filteredOldLayout,filteredNewLayout)
 		if((filteredDiffs||[]).some(d=>d && Object.keys(d).length)){
 			// console.log(`Changes: ${JSON.stringify(filteredDiffs,null,4)}`)
-			props.setLayout && props.setLayout(filteredNewLayout)
+			setTimeout(()=>{
+				props.setLayout && props.setLayout(filteredNewLayout.map(l=>removeProperties(l,["i"])))
+			},200) // Weird RGL bug if you alter layout while it is doing the internal preview. Transition time is 200ms
+			
 		}
 
 		const filteredInternalOldLayout = layout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
 		const filteredInternalNewLayout = newLayout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
 		const filteredInternalDiffs = recursiveDeepDiffs(filteredInternalOldLayout,filteredInternalNewLayout)
 		if((filteredInternalDiffs||[]).some(d=>d && Object.keys(d).length)){
-			// console.log(`Changes: ${JSON.stringify(filteredInternalDiffs,null,4)}`)
+			console.log(`Changes: ${JSON.stringify(filteredInternalDiffs,null,4)}`)
 			setInternalLayout(filteredInternalNewLayout)
 		}
 	}
@@ -85,20 +89,20 @@ const Grid = ({
 		const differences = recursiveDeepDiffs(o,n)
 		if(differences){
 			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
-			props.onDrop && props.onDrop(newPos, oldPos)
+			props.onDrop && props.onDrop(unmakeKey(newPos?.i), removeProperties(newPos,["i"]), removeProperties(oldPos,["i"]))
 		}
 	}
 
 	const gridItems = props.children.map((child,i)=>{
-		const childGridProps = child?.props?.grid || {}
-		const id = childGridProps.i || makeKey(i)
+		const id = makeKey(i)
+		const grid = layout.find(l=>l.i===id)
 		return (
-			<div key={id} className={classes['grid-item-container']} data-grid={layout.find(l=>l.i===id)}>
+			<div key={id} className={classes['grid-item-container']} data-grid={grid}>
 				<GridItem
-					height={layout.find(l=>l.i===id)?.h}
+					height={grid?.h}
 					setHeight={(h)=>setInternalLayout(internalLayout.map(l=>l.i!==id ? l : {...l, h}))}
 					className={classes['grid-item-componnent']}
-					data-grid={layout.find(l=>l.i===id)}
+					data-grid={grid}
 				>
 					{child}
 				</GridItem>

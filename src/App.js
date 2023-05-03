@@ -12,7 +12,7 @@ import { Button } from '@execview/reusable';
 const App = (props) => {
 	useThemeApplier(defaultTheme)
 
-	const [grids, setGrids] = useState([{x: 0},{w: 2}])
+	const [grids, setGrids] = useState([{x: 0},{w: 1, x: 1}])
 
 	const numberOfItems = 2
 
@@ -24,15 +24,14 @@ const App = (props) => {
 		const item = React.createElement(handler.type,{...handler.props},content)
 		childItems.push(item)
 	}
-	console.log(grids)
 	const setLayout = (layout) => {
-		console.log(layout)
-		// setGrids(layout.map(l=>({...l, x: 2})))
+		// console.log(layout)
+		// setGrids(layout.map(l=>({...l, x: 1})))
 		setGrids(layout)
 	}
 
-	const onDrop = (n,o) => {
-		// console.log(n,o)
+	const onDrop = (i,n,o) => {
+		console.log(i,n,o)
 	}
 
 	return (
