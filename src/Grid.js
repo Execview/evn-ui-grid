@@ -97,12 +97,11 @@ const Grid = ({
 		const id = makeKey(i)
 		const grid = layout.find(l=>l.i===id)
 		return (
-			<div key={id} className={classes['grid-item-container']} data-grid={grid}>
+			<div key={id} className={classes['grid-item-container']}>
 				<GridItem
 					height={grid?.h}
 					setHeight={(h)=>setInternalLayout(internalLayout.map(l=>l.i!==id ? l : {...l, h}))}
 					className={classes['grid-item-componnent']}
-					data-grid={grid}
 				>
 					{child}
 				</GridItem>
