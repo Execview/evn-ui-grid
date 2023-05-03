@@ -26,21 +26,16 @@ const App = (props) => {
 	}
 	const setLayout = (layout) => {
 		// console.log(layout)
-		// setGrids(layout.map(l=>({...l, x: 1})))
-		setGrids(layout)
-	}
-
-	const onDrop = (i,n,o) => {
-		console.log(i,n,o)
+		setGrids(layout.map(l=>({...l, x: 1})))
+		// setGrids(layout)
 	}
 
 	return (
 		<div className={classes["main"]}>
 			<div className={classes["grid-container"]}>
 				<Grid
-					cols={2}
+					cols={3}
 					setLayout={setLayout}
-					onDrop={onDrop}
 					layout={grids}
 				>
 					{childItems}

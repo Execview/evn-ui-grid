@@ -78,18 +78,8 @@ const Grid = ({
 		const filteredInternalNewLayout = newLayout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
 		const filteredInternalDiffs = recursiveDeepDiffs(filteredInternalOldLayout,filteredInternalNewLayout)
 		if((filteredInternalDiffs||[]).some(d=>d && Object.keys(d).length)){
-			console.log(`Changes: ${JSON.stringify(filteredInternalDiffs,null,4)}`)
+			// console.log(`Changes: ${JSON.stringify(filteredInternalDiffs,null,4)}`)
 			setInternalLayout(filteredInternalNewLayout)
-		}
-	}
-
-	const onDrop = (l,o,n) => {
-		const newPos = removeProperties(n,[...internalProperties,...pointlessProperties])
-		const oldPos = removeProperties(o,[...internalProperties,...pointlessProperties])
-		const differences = recursiveDeepDiffs(o,n)
-		if(differences){
-			// console.log(`Changes: ${JSON.stringify(differences,null,4)}`)
-			props.onDrop && props.onDrop(unmakeKey(newPos?.i), removeProperties(newPos,["i"]), removeProperties(oldPos,["i"]))
 		}
 	}
 
@@ -123,7 +113,6 @@ const Grid = ({
 				rowHeight={1}
 				layout={layout}
 				onLayoutChange={onLayoutChange}
-				onDragStop={onDrop}
 				resizeHandles={['e']}
 				margin={margin}
 			>
