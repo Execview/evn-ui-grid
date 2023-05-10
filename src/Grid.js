@@ -30,6 +30,7 @@ const Grid = ({
 	const keepProperties = (layoutItem,properties=[]) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>properties.includes(k)))
 	const removeUndefinedValues = (layoutItem) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>undefined !== v))
 
+	const [activated, setActivated] = useState(false)
 	const [externalLayout, setExternalLayout] = useState([])
 	const [internalLayout, setInternalLayout] = useState([])
 
@@ -74,8 +75,10 @@ const Grid = ({
 	const setLayout = newLayout => {
 		// Weird RGL bug if you alter layout while it is doing the internal preview. Transition time is 200ms
 		setTimeout(()=>{
-			setExternalLayout(newLayout)
-			props.setLayout && props.setLayout(newLayout)
+			if(activated){
+				setExternalLayout(newLayout)
+				externalLayout.length && internalLayout.length && props.setLayout && props.setLayout(newLayout)
+			}
 		},200)
 	}
 	// console.log(externalLayout,internalLayout,layout)
@@ -141,6 +144,7 @@ const Grid = ({
 				onLayoutChange={onLayoutChange}
 				resizeHandles={['e']}
 				margin={margin}
+				onDragStart={()=>!activated && setActivated(true)}
 			>
 				{gridItems}
 			</RGL>

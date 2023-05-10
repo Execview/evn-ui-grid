@@ -25,7 +25,7 @@ const App = (props) => {
 		childItems.push(item)
 	}
 	const setLayout = (layout) => {
-		// console.log(layout)
+		console.log(layout)
 		setGrids(layout.map(l=>({...l, x: 1})))
 		// setGrids(layout)
 	}

@@ -1,6 +1,6 @@
 {
 	"name": "@execview/grid",
-	"version": "0.1.68",
+	"version": "0.1.69",
 	"main": "./transpiled/exports.js",
 	"repository": {
 		"type": "git",

@@ -12,7 +12,6 @@ const CogBar = (props) => {
 				<NonDraggable><FontAwesomeIcon className={classes['cog-icon']} icon={faCog}/></NonDraggable>
 				<RightClickMenuWrapper onLeftClick takeParentLocation>{props.children}</RightClickMenuWrapper>	
 			</div>
-			
 		</div>
 	)
 }
