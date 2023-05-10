@@ -18,19 +18,19 @@ const Grid = ({
 	defaultHeight=200,
 	defaultWidth=1,
 	margin=[0,0],
-	layout: externalLayout=[],
+	layout: realExternalLayout=[],
 	...props
 }) => {
 
 	const makeKey = i => `gridId${i.toString()}`
-	const unmakeKey = key => parseInt(key.replace("gridId",""))
 
 	const externalProperties = ["x","w","y"]
 	const pointlessProperties = ["isBounded","isDraggable","isResizable","minW","maxW","minH","maxH","resizeHandles"]
-	const internalProperties = ["externalHeight","h","moved","static"]
+	const internalProperties = ["h","moved","static"]
 
 	const removeProperties = (layoutItem,properties=[]) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>!properties.includes(k)))
 
+	const [externalLayout, setExternalLayout] = useState([])
 	const [internalLayout, setInternalLayout] = useState([])
 
 	const getLayout = () => {
@@ -58,6 +58,18 @@ const Grid = ({
 		return newLayout
 	}
 
+	useEffect(()=>{
+		// RGL has a bug where external layout changes will not be reflected unless the incorrect state is sent briefly. This stores the expected external layout value, but changes after 200ms (transition time) if there are changes
+		const externalLayoutChanges = recursiveDeepDiffs(externalLayout,realExternalLayout)
+		if((externalLayoutChanges||[]).some(d=>d && Object.keys(d).length)){
+			console.log(`External changes: ${JSON.stringify(externalLayoutChanges,null,4)}`)
+			setTimeout(()=>{
+				setExternalLayout(realExternalLayout)
+			},200)
+		}
+	},realExternalLayout)
+
+	
 	const layout = JSON.parse(JSON.stringify(getLayout()))
 	// console.log(externalLayout,internalLayout,layout)
 
@@ -69,9 +81,10 @@ const Grid = ({
 		if((filteredDiffs||[]).some(d=>d && Object.keys(d).length)){
 			// console.log(`Changes: ${JSON.stringify(filteredDiffs,null,4)}`)
 			setTimeout(()=>{
-				props.setLayout && props.setLayout(filteredNewLayout.map(l=>removeProperties(l,["i"])))
+				const filteredNewLayoutWithoutI = filteredNewLayout.map(l=>removeProperties(l,["i"]))
+				setExternalLayout(filteredNewLayoutWithoutI)
+				props.setLayout && props.setLayout(filteredNewLayoutWithoutI)
 			},200) // Weird RGL bug if you alter layout while it is doing the internal preview. Transition time is 200ms
-			
 		}
 
 		const filteredInternalOldLayout = layout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
