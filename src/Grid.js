@@ -68,7 +68,7 @@ const Grid = ({
 				setExternalLayout(realExternalLayout)
 			},200)
 		}
-	},realExternalLayout)
+	},[JSON.stringify(realExternalLayout)])
 
 	
 	const layout = JSON.parse(JSON.stringify(getLayout()))

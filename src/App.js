@@ -7,7 +7,6 @@ import EmptyHandler from './Handlers/EmptyHandler.js'
 import CogBar from './HandlerTools/CogBar.js'
 
 import { useThemeApplier, defaultTheme } from '@execview/themedesigner'
-import { Button } from '@execview/reusable';
 
 const App = (props) => {
 	useThemeApplier(defaultTheme)
