@@ -25,10 +25,10 @@ const Grid = ({
 	const makeKey = i => `gridId${i.toString()}`
 
 	const externalProperties = ["x","w","y"]
-	const pointlessProperties = ["isBounded","isDraggable","isResizable","minW","maxW","minH","maxH","resizeHandles"]
-	const internalProperties = ["h","moved","static"]
 
 	const removeProperties = (layoutItem,properties=[]) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>!properties.includes(k)))
+	const keepProperties = (layoutItem,properties=[]) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>properties.includes(k)))
+	const removeUndefinedValues = (layoutItem) => Object.fromEntries(Object.entries(layoutItem).filter(([k,v])=>undefined !== v))
 
 	const [externalLayout, setExternalLayout] = useState([])
 	const [internalLayout, setInternalLayout] = useState([])
@@ -80,23 +80,32 @@ const Grid = ({
 	}
 	// console.log(externalLayout,internalLayout,layout)
 
+
+	const splitInternalAndExternalProperties = ls => {
+		let els = []
+		let ils = []
+		ls.forEach((l,i)=>{
+			const externalKeys = [...new Set([...externalProperties, ...Object.keys(externalLayout[i]||{})])]
+			els.push(removeUndefinedValues(keepProperties(l,externalKeys)))
+			ils.push(removeUndefinedValues(removeProperties(l,externalKeys)))
+		})
+		return [ils, els]
+	}
+
 	const onLayoutChange = (newLayout) => {
+		const [oi, oe] = splitInternalAndExternalProperties(layout)
+		const [ni, ne] = splitInternalAndExternalProperties(newLayout)
 
-		const filteredOldLayout = layout.map(l=>removeProperties(l,[...internalProperties,...pointlessProperties]))
-		const filteredNewLayout = newLayout.map(l=>removeProperties(l,[...internalProperties,...pointlessProperties]))
-		const filteredDiffs = recursiveDeepDiffs(filteredOldLayout,filteredNewLayout)
-		if((filteredDiffs||[]).some(d=>d && Object.keys(d).length)){
-			// console.log(`Changes: ${JSON.stringify(filteredDiffs,null,4)}`)
-			const filteredNewLayoutWithoutI = filteredNewLayout.map(l=>removeProperties(l,["i"]))
-			setLayout(filteredNewLayoutWithoutI)
+		const externalDiffs = recursiveDeepDiffs(oe,ne)
+		const internalDiffs = recursiveDeepDiffs(oi,ni)
+
+		if((externalDiffs||[]).some(d=>d && Object.keys(d).length)){
+			// console.log(`Changes: ${JSON.stringify(externalDiffs,null,4)}`)
+			setLayout(ne)
 		}
-
-		const filteredInternalOldLayout = layout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
-		const filteredInternalNewLayout = newLayout.map(l=>removeProperties(l,[...externalProperties,...pointlessProperties]))
-		const filteredInternalDiffs = recursiveDeepDiffs(filteredInternalOldLayout,filteredInternalNewLayout)
-		if((filteredInternalDiffs||[]).some(d=>d && Object.keys(d).length)){
-			// console.log(`Changes: ${JSON.stringify(filteredInternalDiffs,null,4)}`)
-			setInternalLayout(filteredInternalNewLayout)
+		if((internalDiffs||[]).some(d=>d && Object.keys(d).length)){
+			// console.log(`Changes: ${JSON.stringify(internalDiffs,null,4)}`)
+			setInternalLayout(ni)
 		}
 	}
 
