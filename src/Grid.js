@@ -62,7 +62,7 @@ const Grid = ({
 		// RGL has a bug where external layout changes will not be reflected unless the incorrect state is sent briefly. This stores the expected external layout value, but changes after 200ms (transition time) if there are changes
 		const externalLayoutChanges = recursiveDeepDiffs(externalLayout,realExternalLayout)
 		if((externalLayoutChanges||[]).some(d=>d && Object.keys(d).length)){
-			console.log(`External changes: ${JSON.stringify(externalLayoutChanges,null,4)}`)
+			// console.log(`External changes: ${JSON.stringify(externalLayoutChanges,null,4)}`)
 			setTimeout(()=>{
 				setExternalLayout(realExternalLayout)
 			},200)
