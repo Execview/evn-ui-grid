@@ -37,9 +37,10 @@ const Grid = ({
 	const getLayout = () => {
 		let newLayout = internalLayout || []
 		externalLayout.forEach((externalItem,i)=>{
+			const {h, ...ei} = externalItem //height is managed internally
 			const id = makeKey(i)
 			const existingItem = newLayout.find(l=>l.i===id)
-			const newItem = {...existingItem,...externalItem}
+			const newItem = {...existingItem,...ei}
 			if(existingItem){
 				newLayout = newLayout.map(l=>l.i!==id ? l : newItem)
 			} else {
@@ -68,16 +69,14 @@ const Grid = ({
 				setExternalLayout(realExternalLayout)
 			},200)
 		}
-	},[JSON.stringify(realExternalLayout)])
-
-	
+	})
 	const layout = JSON.parse(JSON.stringify(getLayout()))
 	const setLayout = newLayout => {
 		// Weird RGL bug if you alter layout while it is doing the internal preview. Transition time is 200ms
 		setTimeout(()=>{
 			if(activated){
 				setExternalLayout(newLayout)
-				externalLayout.length && internalLayout.length && props.setLayout && props.setLayout(newLayout)
+				props.setLayout && props.setLayout(newLayout)
 			}
 		},200)
 	}
@@ -144,7 +143,7 @@ const Grid = ({
 				onLayoutChange={onLayoutChange}
 				resizeHandles={['e']}
 				margin={margin}
-				onDragStart={()=>!activated && setActivated(true)}
+				onDragStart={()=>{if(!activated){setActivated(true)}}}
 			>
 				{gridItems}
 			</RGL>

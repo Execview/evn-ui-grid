@@ -5,7 +5,7 @@ const GridItem = ({height, setHeight, className, children, ...otherProps}) => {
 	const {height: measuredHeight, ref} = useResizeDetector()
 	useLayoutEffect(()=>{
 		if(measuredHeight && height && (measuredHeight !== height)) {
-			setHeight(measuredHeight)
+			setHeight && setHeight(measuredHeight)
 		}
 	})
 
